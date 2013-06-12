@@ -5385,6 +5385,7 @@ int ReplicatedPG::send_pull(int prio, int peer,
 void ReplicatedPG::submit_push_data(
   const ObjectRecoveryInfo &recovery_info,
   bool first,
+  bool complete,
   const interval_set<uint64_t> &intervals_included,
   bufferlist data_included,
   bufferlist omap_header,
@@ -5583,6 +5584,7 @@ void ReplicatedPG::handle_pull_response(OpRequestRef op)
   Context *onreadable_sync = 0;
   Context *oncomplete = 0;
   submit_push_data(pi.recovery_info, first,
+		   complete,
 		   data_included, data,
 		   m->omap_header,
 		   m->attrset,
@@ -5680,6 +5682,7 @@ void ReplicatedPG::handle_push(OpRequestRef op)
   Context *onreadable_sync = 0;
   submit_push_data(m->recovery_info,
 		   first,
+		   complete,
 		   m->data_included,
 		   data,
 		   m->omap_header,
