@@ -572,7 +572,7 @@ protected:
 			map<string, bufferptr> &attrs,
 			map<string, bufferlist> &omap_entries,
 			ObjectStore::Transaction *t);
-  void submit_push_complete(ObjectRecoveryInfo &recovery_info,
+  void submit_push_complete(const ObjectRecoveryInfo &recovery_info,
 			    ObjectStore::Transaction *t);
 
   /*

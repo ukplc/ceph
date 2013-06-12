@@ -5429,7 +5429,7 @@ void ReplicatedPG::submit_push_data(
   }
 }
 
-void ReplicatedPG::submit_push_complete(ObjectRecoveryInfo &recovery_info,
+void ReplicatedPG::submit_push_complete(const ObjectRecoveryInfo &recovery_info,
 					ObjectStore::Transaction *t)
 {
   for (map<hobject_t, interval_set<uint64_t> >::const_iterator p =
@@ -5458,24 +5458,26 @@ void ReplicatedPG::submit_push_complete(ObjectRecoveryInfo &recovery_info,
       &_t);
   }
 
+  eversion_t got_version = recovery_info.version;
   if (pg_log.get_missing().is_missing(recovery_info.soid) &&
       pg_log.get_missing().missing.find(recovery_info.soid)->second.need > recovery_info.version) {
     assert(is_primary());
     const pg_log_entry_t *latest = pg_log.get_log().objects.find(recovery_info.soid)->second;
     if (latest->op == pg_log_entry_t::LOST_REVERT &&
-	latest->reverting_to == recovery_info.version) {
-      dout(10) << " got old revert version " << recovery_info.version
+	latest->reverting_to == got_version) {
+      dout(10) << " got old revert version " << got_version
 	       << " for " << *latest << dendl;
-      recovery_info.version = latest->version;
+      got_version = latest->version;
       // update the attr to the revert event version
-      recovery_info.oi.prior_version = recovery_info.oi.version;
-      recovery_info.oi.version = latest->version;
+      object_info_t oi(recovery_info.oi);
+      oi.prior_version = recovery_info.oi.version;
+      oi.version = latest->version;
       bufferlist bl;
-      ::encode(recovery_info.oi, bl);
+      ::encode(oi, bl);
       t->setattr(coll, recovery_info.soid, OI_ATTR, bl);
     }
   }
-  recover_got(recovery_info.soid, recovery_info.version);
+  recover_got(recovery_info.soid, got_version);
 
   // update pg
   dirty_info = true;
