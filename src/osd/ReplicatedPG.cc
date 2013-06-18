@@ -5708,7 +5708,6 @@ bool ReplicatedPG::handle_pull_response(
   info.stats.stats.sum.num_keys_recovered += pop.omap_entries.size();
 
   if (complete) {
-    submit_push_complete(pi.recovery_info, t);
     info.stats.stats.sum.num_objects_recovered++;
 
     SnapSetContext *ssc;
@@ -5800,9 +5799,6 @@ void ReplicatedPG::handle_push(
 		   pop.attrset,
 		   pop.omap_entries,
 		   t);
-  if (complete)
-    submit_push_complete(pop.recovery_info,
-			 t);
 
   t->register_on_commit(
     new C_OSD_CommittedPushedObject(
